@@ -145,7 +145,7 @@ class TestPet:
         assert update_pet["status"] == "sold" , "статус питомца не совпадает с ожидаемым"
 
     @allure.title("Удаление питомца")
-    def test_delete_pet_id(self, create_pet, get_pet):
+    def test_delete_pet_id(self, create_pet):
         with allure.step("Получение id созданного питомца"):
             pet_id = create_pet["id"]
 
