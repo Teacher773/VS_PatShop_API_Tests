@@ -1,4 +1,5 @@
 import allure
+import pytest
 import requests
 import jsonschema
 from Tests.schemas.pet_schema import PET_SCHEMA
@@ -142,7 +143,7 @@ class TestPet:
             update_pet = response.json()
         assert update_pet["id"] == pet_id
         assert update_pet["name"] == "Buddy Updated", "имя питомца не совпадает с ожидаемым"
-        assert update_pet["status"] == "sold" , "статус питомца не совпадает с ожидаемым"
+        assert update_pet["status"] == "sold", "статус питомца не совпадает с ожидаемым"
 
     @allure.title("Удаление питомца")
     def test_delete_pet_id(self, create_pet):
@@ -158,15 +159,27 @@ class TestPet:
                 url=f"{BASE_URL}/pet/{pet_id}")
         assert response.status_code == 404
 
+    @allure.title("Получение списка питомцeв по статусу")
+    @pytest.mark.parametrize(
+        "status, expected_status_code",
+        [("available", 200),
+         ("pending", 200),
+         ("sold", 200),
+         ("Рубин", 400),
+         ("", 400)]
+    )
+    def test_get_pet_by_status(self, status, expected_status_code):
+        with allure.step(f"Отправка запроса на получение питомце по статусу {status}"):
+            response = requests.get(f"{BASE_URL}/pet/findByStatus", params=({"status": status}))
 
-
-
-
-
-
-
-
-
+        with allure.step("Отправка статуса ответа и  формата даныых данных"):
+            assert response.status_code == expected_status_code
+            if expected_status_code == 200:
+                assert isinstance(response.json(), list), "Ответ должен быть списком для успешных запросов"
+            else:
+                error_data = response.json()
+                assert error_data["code"] == 400
+                assert "is not in the allowable values" in error_data["message"]
 
 
 
