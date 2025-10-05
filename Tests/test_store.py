@@ -12,7 +12,7 @@ BASE_URL = "http://5.181.109.28:9090/api/v3"
 @allure.feature("Store")
 class TestStore:
     @allure.title("Размещение заказа")
-    def test_add_order(self, create_order):
+    def test_add_order(self):
         with allure.step("Подготовка данных для отправки"):
             payload = {
                 "id": 1,
@@ -55,21 +55,23 @@ class TestStore:
             assert create_order["complete"] == True, "Объем не совпадает"
 
     @allure.title("Удаление заказа по id")
-    def test_delete_order_by_id(self):
+    def test_delete_order_by_id(self, create_order):
         with allure.step("Отправка запроса на удаление заказа"):
             response = requests.delete(
-                url=(f"{BASE_URL}/store/order/1"))
+                url=(
+                    f"{BASE_URL}/store/order/{create_order['id']}")
+            )
 
         with allure.step("Проверка статус кода"):
             assert response.status_code == 200, "Статус код не совпадает с ожидаемым"
 
         with allure.step("Проверка статуса кода на получение удаленного заказа"):
             response = requests.get(
-                f"{BASE_URL}/store/order/1")
+                f"{BASE_URL}/store/order/{create_order["id"]}")
             assert response.status_code == 404, "Статус код не совпадает с ожидаемым"
 
     @allure.title("Получение несуществующего заказа")
-    def test_get_nonexistent_pet(self):
+    def test_get_nonexistent_order(self):
         with allure.step("Проверка статуса кода на получение удаленного заказа"):
             response = requests.get(
                 f"{BASE_URL}/store/order/9999")
@@ -87,7 +89,7 @@ class TestStore:
         with allure.step("Проверка статуса кода и валидации формата ответа"):
             assert response.status_code == 200, "Статус код не совпадает с ожидаемым"
             jsonschema.validate(instance=response_json, schema=INVENTORY_SCHEMA)
-            print("Валидный формат ответа")
+
 
 
 
